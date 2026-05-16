@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DIVU AI Studio | Futuristic Image Generation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --primary: #8b5cf6;
+        --secondary: #3b82f6;
+        --accent: #d946ef;
+        --bg-dark: #07080d;
+        --card-bg: #12131a;
+        --glass-border: rgba(255, 255, 255, 0.05);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-dark);
+        color: #ffffff;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+      }
+
+      /* Animated Background Glows */
+      .glow-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .glow-circle {
+        position: absolute;
+        width: 800px;
+        height: 800px;
+        border-radius: 50%;
+        filter: blur(180px);
+        opacity: 0.1;
+        animation: move 30s infinite alternate;
+      }
+
+      @keyframes move {
+        from {
+          transform: translate(-30%, -30%);
+        }
+        to {
+          transform: translate(40%, 50%);
+        }
+      }
+
+      /* Neural Presets Styling */
+      .preset-card {
+        min-width: 140px;
+        background: #111218;
+        border: 1px solid #1e1f29;
+        border-radius: 20px;
+        padding: 20px 12px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .preset-card:hover {
+        background: #181a25;
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+      }
+
+      .preset-icon-box {
+        width: 100%;
+        aspect-ratio: 1/1;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 20px;
+      }
+
+      .icon-anime {
+        background: #1a1529;
+        color: #a855f7;
+      }
+      .icon-cyberpunk {
+        background: #131a2e;
+        color: #3b82f6;
+      }
+      .icon-fantasy {
+        background: #1f1a14;
+        color: #eab308;
+      }
+      .icon-gaming {
+        background: #26151a;
+        color: #f43f5e;
+      }
+      .icon-space {
+        background: #16152b;
+        color: #818cf8;
+      }
+      .icon-portrait {
+        background: #131f1a;
+        color: #22c55e;
+      }
+
+      /* Recent Creations Styling */
+      .creation-card {
+        background: #161616;
+        border-radius: 24px;
+        aspect-ratio: 1/1.1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #222;
+        transition: 0.3s;
+        cursor: pointer;
+        position: relative;
+        padding: 20px;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .creation-card:hover {
+        border-color: #4c1d95;
+        background: #1c1c1c;
+      }
+
+      select {
+        appearance: none;
+        background: #1c1c24;
+        border: 1px solid #2e2e3a;
+        color: white;
+        padding: 14px 20px;
+        border-radius: 14px;
+        width: 100%;
+        cursor: pointer;
+        font-weight: 500;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 18px;
+      }
+
+      .text-gradient {
+        background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .btn-neon {
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+        transition: 0.3s;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-neon:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+      }
+
+      #info-modal {
+        transition: all 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        backdrop-filter: blur(12px);
+      }
+
+      #info-modal.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .profile-img-frame {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        border-radius: 50%;
+        padding: 3px;
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      }
+
+      .profile-img-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #07080d;
+        background: #1a1b26;
+      }
+
+      ::-webkit-scrollbar {
+        height: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow-bg">
+      <div class="glow-circle bg-purple-600 top-[-200px] left-[-200px]"></div>
+      <div class="glow-circle bg-blue-600 bottom-[-200px] right-[-200px]"></div>
+    </div>
+
+    <!-- Info Modal -->
+    <div
+      id="info-modal"
+      class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80"
+    >
+      <div
+        class="bg-[#12131a] border border-[#1e1f29] rounded-[32px] max-w-md w-full p-8 relative"
+      >
+        <button
+          onclick="toggleInfo()"
+          class="absolute top-6 right-6 text-gray-500 hover:text-white transition"
+        >
+          <i class="fas fa-times text-xl"></i>
+        </button>
+        <div class="text-center mb-8">
+          <div class="profile-img-frame mb-6">
+            <div class="profile-img-inner">
+              <img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kush"
+                alt="Kush Bhatt"
+                class="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <h2 class="text-3xl font-bold text-white tracking-tight">
+            Kush Bhatt
+          </h2>
+          <p
+            class="text-purple-400 text-xs font-bold mt-1 tracking-[0.2em] uppercase"
+          >
+            Creative Developer
+          </p>
+        </div>
+        <div class="space-y-3">
+          <div
+            class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5"
+          >
+            <i class="fas fa-envelope text-purple-400 w-5"></i>
+            <p class="text-gray-300 text-sm font-medium">bkush474@gmail.com</p>
+          </div>
+          <div
+            class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5"
+          >
+            <i class="fas fa-phone text-blue-400 w-5"></i>
+            <p class="text-gray-300 text-sm font-medium">+91 70697 01007</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav
+      class="fixed top-0 w-full z-50 px-6 py-5 backdrop-blur-xl border-b border-white/5 bg-black/40"
+    >
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center"
+          >
+            <i class="fas fa-bolt text-white text-xl"></i>
+          </div>
+          <span class="text-xl font-black tracking-tighter uppercase"
+            >DIVU <span class="text-purple-500">AI</span> STUDIO</span
+          >
+        </div>
+        <button
+          onclick="toggleInfo()"
+          class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-400 hover:text-purple-400 transition"
+        >
+          <i class="fas fa-user-circle text-xl"></i>
+        </button>
+      </div>
+    </nav>
+
+    <main class="pt-32 pb-20 px-6">
+      <section class="max-w-4xl mx-auto text-center mb-16">
+        <h1
+          class="text-6xl md:text-8xl font-black tracking-tighter mb-6 text-gradient uppercase"
+        >
+          Imagine.<br />Create.
+        </h1>
+        <p class="text-gray-500 text-lg md:text-xl font-medium">
+          Neural Engine v2.5 Stable
+        </p>
+      </section>
+
+      <!-- Generation UI Section -->
+      <section class="max-w-5xl mx-auto mb-24">
+        <div
+          class="bg-[#111218] border border-[#1e1f29] rounded-[40px] p-8 md:p-12"
+        >
+          <div class="flex flex-col gap-6">
+            <textarea
+              id="prompt-input"
+              rows="4"
+              class="w-full bg-[#07080d] border border-[#1e1f29] rounded-2xl p-6 text-lg text-white placeholder-gray-700 focus:outline-none focus:border-purple-500/40 transition-all resize-none"
+              placeholder="Describe your creative vision..."
+            ></textarea>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+              <select id="aspect-ratio">
+                <option value="1:1">1:1 Square</option>
+                <option value="16:9">16:9 Cinema</option>
+                <option value="9:16">9:16 Vertical</option>
+              </select>
+              <select id="quality">
+                <option value="ultra">Ultra Quality</option>
+                <option value="fast">Fast Render</option>
+              </select>
+              <button
+                id="generate-btn"
+                onclick="generateImage()"
+                class="btn-neon px-8 py-4 rounded-xl text-white flex items-center justify-center gap-3 text-sm font-black disabled:opacity-50"
+              >
+                GENERATE
+              </button>
+            </div>
+          </div>
+
+          <!-- Result Area -->
+          <div id="loading-state" class="hidden mt-12 text-center py-16">
+            <div
+              class="inline-block w-12 h-12 border-4 border-purple-500/10 border-t-purple-500 rounded-full animate-spin"
+            ></div>
+            <p
+              class="mt-6 text-gray-500 font-bold tracking-[0.3em] uppercase text-[10px]"
+            >
+              Neural Processing
+            </p>
+          </div>
+
+          <div
+            id="result-container"
+            class="hidden mt-12 animate-[fadeIn_0.5s_ease-out]"
+          >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div
+                class="aspect-square bg-black rounded-3xl overflow-hidden border border-white/5 shadow-2xl"
+              >
+                <img
+                  id="generated-img"
+                  src=""
+                  alt="Result"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div class="space-y-6">
+                <div
+                  class="inline-block px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest"
+                >
+                  Success
+                </div>
+                <h3 class="text-3xl font-black uppercase tracking-tight">
+                  Render Output
+                </h3>
+                <p
+                  class="text-gray-500 text-sm leading-relaxed italic"
+                  id="result-prompt-text"
+                ></p>
+                <button
+                  onclick="downloadImage()"
+                  class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition font-black uppercase text-[10px] tracking-[0.2em]"
+                >
+                  Download Asset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="error-message"
+            class="hidden mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center"
+          >
+            Connection failed. Please check your backend status.
+          </div>
+        </div>
+      </section>
+
+      <!-- Preset Section -->
+      <section class="max-w-7xl mx-auto mb-24">
+        <h2 class="text-4xl font-black mb-10 tracking-tighter">
+          Neural Presets
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div onclick="setTemplate('Anime')" class="preset-card">
+            <div class="preset-icon-box icon-anime">
+              <i class="fas fa-palette"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Anime</span
+            >
+          </div>
+          <div onclick="setTemplate('Cyberpunk')" class="preset-card">
+            <div class="preset-icon-box icon-cyberpunk">
+              <i class="fas fa-city"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Cyberpunk</span
+            >
+          </div>
+          <div onclick="setTemplate('Fantasy')" class="preset-card">
+            <div class="preset-icon-box icon-fantasy">
+              <i class="fas fa-dragon"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Fantasy</span
+            >
+          </div>
+          <div onclick="setTemplate('Gaming')" class="preset-card">
+            <div class="preset-icon-box icon-gaming">
+              <i class="fas fa-gamepad"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Gaming</span
+            >
+          </div>
+          <div onclick="setTemplate('Space')" class="preset-card">
+            <div class="preset-icon-box icon-space">
+              <i class="fas fa-user-astronaut"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Space</span
+            >
+          </div>
+          <div onclick="setTemplate('Portrait')" class="preset-card">
+            <div class="preset-icon-box icon-portrait">
+              <i class="fas fa-user"></i>
+            </div>
+            <span
+              class="text-xs font-black uppercase tracking-tighter text-white"
+              >Portrait</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Creations -->
+      <section class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-black uppercase tracking-tight">
+            Recent Creations
+          </h2>
+        </div>
+        <div id="recent-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div class="creation-card">
+            <span class="text-[#a855f7] font-black text-xl tracking-tight"
+              >Neon Forest</span
+            >
+          </div>
+          <div class="creation-card">
+            <span class="text-[#3b82f6] font-black text-xl tracking-tight"
+              >Sci-Fi Helmet</span
+            >
+          </div>
+          <div class="creation-card border-dashed border-[#222] opacity-30">
+            <i class="fas fa-plus text-3xl text-gray-700"></i>
+          </div>
+          <div class="creation-card border-dashed border-[#222] opacity-30">
+            <i class="fas fa-plus text-3xl text-gray-700"></i>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="py-20 text-center border-t border-white/5">
+      <p
+        class="text-gray-700 text-[10px] font-black uppercase tracking-[0.5em]"
+      >
+        Divu Neural Systems &copy; MMXXIV
+      </p>
+    </footer>
+
+    <script>
+      const promptInput = document.getElementById("prompt-input");
+      const generateBtn = document.getElementById("generate-btn");
+      const loadingState = document.getElementById("loading-state");
+      const resultContainer = document.getElementById("result-container");
+      const generatedImg = document.getElementById("generated-img");
+      const recentGallery = document.getElementById("recent-gallery");
+      const resultPromptText = document.getElementById("result-prompt-text");
+      const infoModal = document.getElementById("info-modal");
+      const errorMessage = document.getElementById("error-message");
+
+      const prompts = {
+        Anime:
+          "Masterpiece anime artwork, vibrant colors, cinematic lighting, 8k resolution.",
+        Cyberpunk:
+          "Futuristic cyberpunk metropolis, rain, neon signs, blade runner aesthetic.",
+        Fantasy:
+          "Epic fantasy landscape, ancient dragon, floating islands, golden hour.",
+        Gaming:
+          "Retro gaming room, neon RGB lights, pixel art on monitors, cozy atmosphere.",
+        Space:
+          "Deep space nebula, cosmic gas, distant galaxy, photorealistic textures.",
+        Portrait:
+          "Cinematic human portrait, detailed skin, soft bokeh, professional studio lighting.",
+      };
+
+      function toggleInfo() {
+        infoModal.classList.toggle("active");
+      }
+
+      function setTemplate(type) {
+        promptInput.value = prompts[type];
+        window.scrollTo({
+          top: promptInput.offsetTop - 120,
+          behavior: "smooth",
+        });
+        promptInput.focus();
+      }
+
+      /**
+       * Fetch with exponential backoff for reliability
+       */
+      async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
+        try {
+          const response = await fetch(url, options);
+          if (!response.ok) throw new Error("Network response was not ok");
+          return await response.json();
+        } catch (error) {
+          if (retries > 0) {
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return fetchWithRetry(url, options, retries - 1, delay * 2);
+          }
+          throw error;
+        }
+      }
+
+      async function generateImage() {
+        const prompt = promptInput.value.trim();
+        if (!prompt) return;
+
+        generateBtn.disabled = true;
+        loadingState.classList.remove("hidden");
+        resultContainer.classList.add("hidden");
+        errorMessage.classList.add("hidden");
+
+        try {
+          // Communicating with app.py backend
+          // Using relative path to work within the environment's proxy
+          const data = await fetchWithRetry("/generate-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: prompt,
+              aspect_ratio: document.getElementById("aspect-ratio").value,
+              quality: document.getElementById("quality").value,
+            }),
+          });
+
+          if (data.image) {
+            generatedImg.src = data.image;
+            resultPromptText.innerText = prompt;
+            resultContainer.classList.remove("hidden");
+            addToGallery(data.image, prompt);
+          } else {
+            throw new Error(data.error || "Generation failed");
+          }
+        } catch (error) {
+          console.error("Generation Error:", error);
+          errorMessage.innerText =
+            "Error: " + (error.message || "Failed to reach backend.");
+          errorMessage.classList.remove("hidden");
+        } finally {
+          loadingState.classList.add("hidden");
+          generateBtn.disabled = false;
+        }
+      }
+
+      function addToGallery(url, prompt) {
+        const card = document.createElement("div");
+        card.className = "creation-card group relative overflow-hidden";
+        card.style.backgroundImage = `url(${url})`;
+        card.style.backgroundSize = "cover";
+        card.style.backgroundPosition = "center";
+        card.innerHTML = `
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-6">
+                    <p class="text-[10px] font-black uppercase text-white tracking-widest text-center">${prompt.substring(0, 40)}...</p>
+                </div>
+            `;
+        recentGallery.prepend(card);
+      }
+
+      function downloadImage() {
+        if (!generatedImg.src) return;
+        const link = document.createElement("a");
+        link.href = generatedImg.src;
+        link.download = `divu-ai-${Date.now()}.png`;
+        link.click();
+      }
+    </script>
+  </body>
+</html>
