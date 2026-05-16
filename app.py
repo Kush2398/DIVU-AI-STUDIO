@@ -1,6 +1,6 @@
 # =========================================================
 # DIVU AI IMAGE GENERATOR
-# PERFECT CLEAN WEBSITE VERSION
+# RAILWAY + GITHUB READY VERSION
 # =========================================================
 
 from flask import (
@@ -11,7 +11,6 @@ from flask import (
 )
 
 from flask_cors import CORS
-
 from huggingface_hub import InferenceClient
 
 import requests
@@ -29,33 +28,40 @@ app = Flask(__name__)
 CORS(app)
 
 # =========================================================
-# TOKENS
+# ENV VARIABLES
 # =========================================================
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 # =========================================================
-# HUGGINGFACE CLIENT
+# CHECK TOKEN
+# =========================================================
+
+if not HF_TOKEN:
+
+    raise ValueError(
+        "HF_TOKEN environment variable missing"
+    )
+
+# =========================================================
+# HUGGING FACE CLIENT
 # =========================================================
 
 client = InferenceClient(
-
     token=HF_TOKEN
 )
 
 # =========================================================
-# SERVER URL
-# =========================================================
-
-SERVER_URL = "http://127.0.0.1:5000"
-
-# =========================================================
-# PATHS
+# BASE PATH
 # =========================================================
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
+
+# =========================================================
+# OUTPUT FOLDER
+# =========================================================
 
 OUTPUT_FOLDER = os.path.join(
     BASE_DIR,
@@ -76,9 +82,7 @@ os.makedirs(
 def home():
 
     return send_from_directory(
-
         BASE_DIR,
-
         "index.html"
     )
 
@@ -111,7 +115,7 @@ def clean_image_prompt(prompt):
     return prompt.strip()
 
 # =========================================================
-# DETECT STYLE
+# STYLE DETECTION
 # =========================================================
 
 def detect_style(prompt):
@@ -223,12 +227,10 @@ def generate_ai_image(prompt):
         print(enhanced_prompt)
 
         # =====================================
-        # TRY HUGGING FACE FIRST
+        # HUGGING FACE
         # =====================================
 
         try:
-
-            print("\nUSING HUGGING FACE...\n")
 
             image = client.text_to_image(
 
@@ -251,9 +253,7 @@ def generate_ai_image(prompt):
 
             image.save(output_path)
 
-            return (
-                f"{SERVER_URL}/static/op/{filename}"
-            )
+            return f"/static/op/{filename}"
 
         except Exception as hf_error:
 
@@ -261,10 +261,8 @@ def generate_ai_image(prompt):
             print(hf_error)
 
         # =====================================
-        # FALLBACK TO POLLINATIONS
+        # POLLINATIONS FALLBACK
         # =====================================
-
-        print("\nUSING POLLINATIONS...\n")
 
         encoded_prompt = urllib.parse.quote(
             enhanced_prompt
@@ -285,9 +283,7 @@ def generate_ai_image(prompt):
         )
 
         response = requests.get(
-
             image_url,
-
             timeout=120
         )
 
@@ -310,9 +306,7 @@ def generate_ai_image(prompt):
 
             f.write(response.content)
 
-        return (
-            f"{SERVER_URL}/static/op/{filename}"
-        )
+        return f"/static/op/{filename}"
 
     except Exception as e:
 
@@ -322,7 +316,7 @@ def generate_ai_image(prompt):
         return None
 
 # =========================================================
-# GENERATE IMAGE ROUTE
+# GENERATE ROUTE
 # =========================================================
 
 @app.route(
@@ -357,7 +351,7 @@ def generate_image():
                 "success": False,
 
                 "message":
-                "Please enter prompt"
+                "Prompt is empty"
             })
 
         image_path = generate_ai_image(
@@ -378,7 +372,7 @@ def generate_image():
             "success": False,
 
             "message":
-            "Failed to generate image"
+            "Generation failed"
         })
 
     except Exception as e:
@@ -395,7 +389,7 @@ def generate_image():
         })
 
 # =========================================================
-# IMAGE HISTORY
+# HISTORY
 # =========================================================
 
 @app.route("/history")
@@ -417,13 +411,10 @@ def history():
             )):
 
                 images.append(
-
-                    f"{SERVER_URL}/static/op/{file}"
+                    f"/static/op/{file}"
                 )
 
-        images.sort(
-            reverse=True
-        )
+        images.sort(reverse=True)
 
         return jsonify({
 
@@ -444,16 +435,14 @@ def history():
         })
 
 # =========================================================
-# SERVE IMAGES
+# SERVE STATIC IMAGES
 # =========================================================
 
 @app.route("/static/op/<filename>")
 def serve_image(filename):
 
     return send_from_directory(
-
         OUTPUT_FOLDER,
-
         filename
     )
 
@@ -463,13 +452,15 @@ def serve_image(filename):
 
 if __name__ == "__main__":
 
-    print("\nDIVU AI SERVER STARTING...\n")
+    PORT = int(
+        os.environ.get("PORT", 5000)
+    )
 
     app.run(
 
         host="0.0.0.0",
 
-        port=5000,
+        port=PORT,
 
-        debug=True
+        debug=False
     )

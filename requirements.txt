@@ -1,4 +1,6 @@
 flask
 flask-cors
 requests
-werkzeug
+huggingface_hub
+pillow
+gunicorn
